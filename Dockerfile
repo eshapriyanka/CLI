@@ -1,13 +1,19 @@
-# Stage 1: Build
+# --- STAGE 1: The Builder (Heavy) ---
+# We use the full Go image (~800MB) to compile the code
 FROM golang:1.23-alpine AS builder
 WORKDIR /app
 COPY . .
+# Compile the binary named "netcheck"
 RUN go build -o netcheck main.go
 
-# Stage 2: Run (Alpine Linux)
+# --- STAGE 2: The Runner (Lightweight) ---
+# We switch to Alpine Linux (~5MB) for the final image
 FROM alpine:latest
-# Install certificates so we can make HTTPS requests
+# Install security certificates for HTTPS
 RUN apk add --no-cache ca-certificates
 WORKDIR /root/
+# Copy ONLY the compiled binary from Stage 1
 COPY --from=builder /app/netcheck .
+
+# Set the binary as the entrypoint
 ENTRYPOINT ["./netcheck"]

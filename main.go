@@ -9,31 +9,29 @@ import (
 )
 
 func main() {
-	// Define a flag: user can type --url to check a specific site
-	urlPtr := flag.String("url", "https://hennge.com", "URL to check")
+	urlPtr := flag.String("url", "", "The URL to check")
 	flag.Parse()
 
-	fmt.Printf("Checking status for: %s ...\n", *urlPtr)
-
-	// Set a timeout of 2 seconds
-	client := http.Client{
-		Timeout: 2 * time.Second,
+	if *urlPtr == "" {
+		fmt.Println("Error: Please provide a URL using --url")
+		os.Exit(1)
 	}
 
-	// Make a GET request
+	fmt.Printf("Checking %s ...\n", *urlPtr)
+	client := http.Client{Timeout: 2 * time.Second}
+
 	resp, err := client.Get(*urlPtr)
 	if err != nil {
-		fmt.Printf("[DOWN] Could not reach %s\nError: %v\n", *urlPtr, err)
-		os.Exit(1) // Exit with error code (Unix style)
+		fmt.Printf("[DOWN] Error: %v\n", err)
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
-	// Check status code
 	if resp.StatusCode == 200 {
-		fmt.Printf("[UP] Website is online! (Status: %d)\n", resp.StatusCode)
-		os.Exit(0) // Exit with success code
+		fmt.Printf("[UP] Status: %d OK\n", resp.StatusCode)
+		os.Exit(0)
 	} else {
-		fmt.Printf("[WARNING] Website returned status: %d\n", resp.StatusCode)
+		fmt.Printf("[WARNING] Status: %d\n", resp.StatusCode)
 		os.Exit(1)
 	}
 }
